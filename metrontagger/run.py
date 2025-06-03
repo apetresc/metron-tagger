@@ -200,19 +200,32 @@ class Runner:
                 )
                 continue
 
+            xml = None
             if self.args.comicinfo and has_comic_rack:
-                xml = ca.archiver.read_file("ComicInfo.xml")
+                try:
+                    xml = ca.archiver.read_file("ComicInfo.xml")
+                except KeyError:
+                    questionary.print(
+                        f"'{ca.path.name}' has a ComicInfo.xml but it is not in the root of the archive",
+                        style=Styles.WARNING,
+                    )
                 self._check_if_xml_is_valid(ca, xml, MetadataFormat.COMIC_RACK, remove_ci)
 
             if self.args.metroninfo and has_metron_info:
-                xml = ca.archiver.read_file("MetronInfo.xml")
+                try:
+                    xml = ca.archiver.read_file("MetronInfo.xml")
+                except KeyError:
+                    questionary.print(
+                        f"'{ca.path.name}' has a MetronInfo.xml but it is not in the root of the archive",
+                        style=Styles.WARNING,
+                    )
                 self._check_if_xml_is_valid(ca, xml, MetadataFormat.METRON_INFO, remove_ci)
 
     @staticmethod
     def _check_if_xml_is_valid(
         comic: Comic, xml: bytes, fmt: MetadataFormat, remove_metadata: bool
     ) -> None:
-        result = ValidateMetadata(xml).validate()
+        result = ValidateMetadata(xml).validate() if xml else None
         messages = {
             SchemaVersion.ci_v2: (
                 f"'{comic.path.name}' has a valid ComicInfo Version 2",
